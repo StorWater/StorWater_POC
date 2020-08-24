@@ -4,7 +4,7 @@
 
 ## Quickstart
 
-1. Check that Python is installed with `python -V` (I use `Python 3.7.4`). If not, [download Python](https://www.python.org/downloads/release/python-374/) and install. Mostly likely works with different versions, I could not install shap with 3.8
+1. Check that Python is installed with `python -V` (I use `Python 3.7.6`). If not, [download Python](https://www.python.org/downloads/release/python-376/) and install. Mostly likely works with different versions, I could not install shap with 3.8
 2. Clone/download project: `git clone https://github.com/StorWater/water_hackathlon.git .`. Go to project location `cd water_hackathlon`
 3. Create new virtual environment: `make create_environment` or `python -m venv .venv_waterhack`
 4. Activate it: `source .\.venv_waterhack\Scripts\activate`
