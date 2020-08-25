@@ -1,5 +1,6 @@
 # Data files
-data/**/.csv
+data/**
+!**.gitkeep
 
 # Python virtual env
 .venv*
@@ -8,6 +9,7 @@ data/**/.csv
 notebooks/.ipynb_checkpoints
 notebooks/.~*
 **.ipynb_checkpoints
+
 # Lets leave the docs for now.
 docs/* 
 
