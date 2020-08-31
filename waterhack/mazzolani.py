@@ -145,6 +145,25 @@ class Mazzolani:
         }
 
     def find_k(self, ln_min=-50, ln_max=10, n_grid=1000, do_plot=False):
+        """Run optimization on a grid of values of Ln
+
+        Parameters
+        ----------
+        ln_min : int, optional
+            Lowest value of Ln used when creating the grid, by default -50
+        ln_max : int, optional
+            Highest value of Ln, used when creating grid, by default 10
+        n_grid : int, optional
+            Number of datapoint in grid. Equivalently, number of optimization problems
+            to be solved, by default 1000
+        do_plot : bool, optional
+            whether to display a plot, by default False
+
+        Returns
+        -------
+        Ln_list, obj, K_w, K_h, idx_sol
+            Solution values
+        """
 
         # Define possible values of Ln
         Ln_list = np.linspace(ln_min, ln_max, n_grid)
