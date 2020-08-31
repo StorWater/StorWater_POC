@@ -52,8 +52,8 @@ def series_to_supervised(data_in, lagged_cols, n_in=1, n_out=1, dropnan=True):
         data_in.drop(lagged_cols, axis=1)
     )  # Here keep unlagged cols
 
-    print("Columns that will be lagged: {}".format(data.columns))
-    print("Columns that will NOT be lagged: {}".format(df_notlag.columns))
+    # print("Columns that will NOT be lagged: {}".format(df_notlag.columns))
+    # print("Columns that will be lagged: {}".format(data.columns))
 
     # Number of variables to lag
     n_vars = data.shape[1]

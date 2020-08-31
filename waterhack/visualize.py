@@ -141,9 +141,7 @@ def time_vs_y(df, time_col, id_col_name, id_list, cols_descr, y_col="y", title="
             dict(
                 label=id_list[i],
                 method="update",
-                args=[
-                    {"visible": visible_trace[i]},
-                ],  # {"shapes": shapes}],
+                args=[{"visible": visible_trace[i]}, {"shapes": shapes}],
             )
         )
     # Añadir botones
@@ -160,6 +158,6 @@ def time_vs_y(df, time_col, id_col_name, id_list, cols_descr, y_col="y", title="
         ]
     )
 
-    fig.update_layout(width=900, height=500, title=title)
+    fig.update_layout(width=1100, height=500, title=title)
 
     return fig
