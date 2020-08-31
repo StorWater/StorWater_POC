@@ -157,17 +157,24 @@ class Mazzolani:
             K_h.append(sol["K_h"])
             K_w.append(sol["K_w"])
 
+        # Return index with min obj
+        idx_sol = np.argmin(obj)
+
         if do_plot:
-            self._plot(Ln_list, obj, K_w, K_h)
+            self._plot(Ln_list, obj, K_w, K_h, idx_sol)
 
-        return Ln_list, obj, K_w, K_h
+        return Ln_list, obj, K_w, K_h, idx_sol
 
-    def _plot(self, Ln_list, obj, K_w, K_h):
+    def _plot(self, Ln_list, obj, K_w, K_h, idx_sol):
+
         plt.plot(Ln_list, obj)
+        plt.axvline(Ln_list[idx_sol], color="g", linestyle="-.")
         plt.title("Objective function vs Ln")
         plt.show()
+
         plt.plot(Ln_list, K_w)
         plt.plot(Ln_list, K_h)
+        plt.axvline(Ln_list[idx_sol], color="g", linestyle="-.")
         plt.legend(("K_w", "K_h"), loc="upper right")
         plt.title("K vs Ln")
         plt.show()
