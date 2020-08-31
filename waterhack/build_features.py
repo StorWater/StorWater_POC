@@ -13,7 +13,7 @@ def data_load_dma(file_csv="data/processed/DMAVolumePressureWeather.csv"):
 
     # We filter for one DMA only
     selected_DMA = "NEWSEVMA"
-    df_filt = df[df.DMA == selected_DMA]
+    df_filt = df[df.DMA == selected_DMA].copy()
     df_filt["Date"] = pd.to_datetime(df_filt["Timestamp"]).dt.date
     df_filt["Time"] = pd.to_datetime(df_filt["Timestamp"]).dt.time
     df_filt["Hour"] = pd.to_datetime(df_filt["Timestamp"]).dt.hour

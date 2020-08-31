@@ -189,6 +189,7 @@ class Mazzolani:
         plt.plot(Ln_list, obj)
         plt.axvline(Ln_list[idx_sol], color="g", linestyle="-.")
         plt.title("Objective function vs Ln")
+        plt.grid()
         plt.show()
 
         plt.plot(Ln_list, K_w)
@@ -196,4 +197,5 @@ class Mazzolani:
         plt.axvline(Ln_list[idx_sol], color="g", linestyle="-.")
         plt.legend(("K_w", "K_h"), loc="upper right")
         plt.title("K vs Ln")
+        plt.grid()
         plt.show()
