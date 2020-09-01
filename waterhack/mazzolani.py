@@ -123,7 +123,7 @@ class Mazzolani:
         eps_neg_sol = [-999] * self.N
         for i in range(self.N):
             eps_pos_sol[i] = eps_pos[i].solution_value()
-            eps_neg_sol[i] = eps_pos[i].solution_value()
+            eps_neg_sol[i] = eps_neg[i].solution_value()
 
         # The objective value of the solution.
         obj_value = np.sum(eps_pos_sol) + np.sum(eps_neg_sol)
@@ -137,7 +137,7 @@ class Mazzolani:
             "K_h": K_h.solution_value(),
             "K_w": K_w.solution_value(),
             "eps_pos_sol": eps_pos_sol,
-            "eps_neg_sol": eps_pos_sol,
+            "eps_neg_sol": eps_neg_sol,
             "obj_value": obj_value,
             "result_status": result_status,
             "n_var": solver.NumVariables(),
