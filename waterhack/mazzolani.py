@@ -144,7 +144,7 @@ class Mazzolani:
             "n_const": solver.NumConstraints(),
         }
 
-    def find_k(self, ln_min=-50, ln_max=10, n_grid=1000, do_plot=False):
+    def find_k(self, ln_min=None, ln_max=None, n_grid=1000, do_plot=False):
         """Run optimization on a grid of values of Ln
 
         Parameters
@@ -164,6 +164,12 @@ class Mazzolani:
         Ln_list, obj, K_w, K_h, idx_sol
             Solution values
         """
+
+        # Come up with some estimated bounds
+        if ln_max is None:
+            ln_max = np.min(self.vol_day) / 4
+        if ln_min is None:
+            ln_min = -np.min(self.vol_day) / 4
 
         # Define possible values of Ln
         Ln_list = np.linspace(ln_min, ln_max, n_grid)
