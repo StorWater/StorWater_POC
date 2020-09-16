@@ -1,8 +1,7 @@
-import pandas as pd
 import numpy as np
-
-from plotly.subplots import make_subplots
+import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 def define_visibles(x):
@@ -159,5 +158,110 @@ def time_vs_y(df, time_col, id_col_name, id_list, cols_descr, y_col="y", title="
     )
 
     fig.update_layout(width=1100, height=500, title=title)
+
+    return fig
+
+
+def visualize_time_series(df, range_dates_zoom=None):
+    """[summary]
+
+    Parameters
+    ----------
+    df : [type]
+        [description]
+    range_dates_zoom : [type], optional
+        [description], by default None
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # Add traces
+    fig.add_trace(
+        go.Scattergl(
+            x=df["Timestamp"], y=df["m3Volume"], name="m3Volume", marker_color="#636EFA"
+        ),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Scattergl(
+            x=df["Timestamp"],
+            y=df["PressureBar"],
+            name="PressureBar",
+            marker_color="#EF553B",
+        ),
+        secondary_y=True,
+    )
+    fig.update_yaxes(range=[1.5, 5], secondary_y=True)
+    fig.update_yaxes(range=[-10, 45], secondary_y=False)
+
+    # Print lines as shapes
+    shapes = list()
+    min_val = -20
+    max_val = 40
+    for j in np.where(df.is_leakage == 1)[0]:
+        if j == 0:
+            continue
+        shapes.append(
+            {
+                "type": "line",
+                "xref": "x",
+                "yref": "y",
+                "x0": df["Timestamp"].iloc[j] - pd.Timedelta(1, "h"),
+                "y0": min_val,
+                "x1": df["Timestamp"].iloc[j],
+                "y1": max_val,
+                "fillcolor": "gray",
+                "type": "rect",
+                "opacity": 1,
+                "layer": "below",
+                "line_width": 0,
+            }
+        ),
+
+    fig.update_layout(shapes=shapes)
+
+    # Add autoscale option
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                pad={"r": 10, "t": -80},
+                xanchor="left",
+                yanchor="top",
+                buttons=[
+                    dict(
+                        label="Zoom out",
+                        method="relayout",
+                        args=[
+                            "xaxis",
+                            [dict(range=[df.Timestamp.min(), df.Timestamp.max()])],
+                        ],
+                    ),
+                ],
+            )
+        ]
+    )
+
+    # Add figure title
+    fig.update_layout(title_text="Time series of inflow volume and pressure")
+    fig.update_xaxes(title_text="Timestamp")
+    if range_dates_zoom:
+        fig.update_xaxes(type="date", range=range_dates_zoom)
+    fig.update_yaxes(
+        title_text="<b>Volume (m3)</b>",
+        secondary_y=False,
+        title_font=dict(color="#636EFA"),
+    )
+    fig.update_yaxes(
+        title_text="<b>Pressure (bar)</b>",
+        secondary_y=True,
+        title_font=dict(color="#EF553B"),
+    )
 
     return fig
