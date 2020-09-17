@@ -1,7 +1,21 @@
+import holoviews as hv
+import hvplot
+import hvplot.pandas
+import hvplot.streamz
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import streamz
+import umap
+from bokeh.models import HoverTool
+from holoviews import streams
 from plotly.subplots import make_subplots
+from sklearn.manifold.t_sne import TSNE
+from sklearn.metrics import auc, classification_report, confusion_matrix, roc_curve
+from sklearn.neighbors.classification import KNeighborsClassifier
+from streamz.dataframe import DataFrame as StreamzDataFrame
+
+from model_evaluation import plot_classification_report, plot_confussion_matrix
 
 
 def define_visibles(x):
@@ -162,7 +176,9 @@ def time_vs_y(df, time_col, id_col_name, id_list, cols_descr, y_col="y", title="
     return fig
 
 
-def visualize_time_series(df, range_dates_zoom=None):
+def visualize_time_series(
+    df, range_dates_zoom=None, range_y_right=[1.5, 5], range_y_left=[-10, 45]
+):
     """[summary]
 
     Parameters
@@ -197,13 +213,13 @@ def visualize_time_series(df, range_dates_zoom=None):
         ),
         secondary_y=True,
     )
-    fig.update_yaxes(range=[1.5, 5], secondary_y=True)
-    fig.update_yaxes(range=[-10, 45], secondary_y=False)
+    fig.update_yaxes(range=range_y_right, secondary_y=True)
+    fig.update_yaxes(range=range_y_left, secondary_y=False)
 
     # Print lines as shapes
     shapes = list()
-    min_val = -20
-    max_val = 40
+    min_val = np.min([range_y_right, range_y_left])
+    max_val = np.max([range_y_right, range_y_left])
     for j in np.where(df.is_leakage == 1)[0]:
         if j == 0:
             continue
@@ -265,3 +281,98 @@ def visualize_time_series(df, range_dates_zoom=None):
     )
 
     return fig
+
+
+def plot_roc_curve(y, y_score):
+    px, py, thrs = roc_curve(y, y_score)
+    rocdf = pd.DataFrame(
+        columns=["False positive rate", "True positive rate", "Threshold"],
+        data=np.array([px, py, thrs * 100]).T,
+    )
+    curve = hv.Curve(rocdf).opts(tools=["hover"], xlabel="False positive rate")
+    _auc = auc(px, py)
+    return curve * hv.Curve(([0, 1], [0, 1])).opts(
+        xlim=(-0.01, 1.0),
+        ylim=(-0.01, 1.05),
+        width=400,
+        height=400,
+        show_grid=True,
+        title="ROC curve with AUC={:.3f}".format(_auc),
+    )
+
+
+def plot_classification_report(y, y_score, threshold=0.5, **kwargs):
+    y_pred = np.where(y_score > threshold, 1, 0)
+    report = classification_report(y, y_pred, output_dict=True, **kwargs)
+    df = pd.DataFrame(report).applymap(lambda x: "{:.2f}".format(x))
+    df = df.T.reset_index()
+    return hv.Table(df).opts(title="Classification report")
+
+
+def plot_confussion_matrix(
+    y,
+    y_score,
+    threshold=0.5,
+    target_names: list = None,
+    cmap: str = "YlGnBu",
+    width=500,
+    height: int = 400,
+    title: str = "Confusion matrix",
+    normalize: bool = False,
+):
+    value_label = "examples"
+    target_label = "true_label"
+    pred_label = "predicted_label"
+    label_color = "color"
+
+    def melt_distances_to_heatmap(distances: pd.DataFrame) -> pd.DataFrame:
+        dist_melt = pd.melt(
+            distances.reset_index(), value_name=value_label, id_vars="index"
+        )
+        dist_melt = dist_melt.rename(
+            columns={"index": target_label, "variable": pred_label}
+        )
+        dist_melt[target_label] = pd.Categorical(dist_melt[target_label])
+        dist_melt[pred_label] = pd.Categorical(dist_melt[pred_label])
+        coords = dist_melt.copy()
+        coords[target_label] = dist_melt[target_label].values.codes
+        coords[pred_label] = dist_melt[pred_label].values.codes
+        return coords[[pred_label, target_label, value_label]]
+
+    y_pred_bin = np.where(y_score > threshold, 1, 0)
+    conf_matrix = confusion_matrix(y, y_pred_bin)
+    if normalize:
+        conf_matrix = np.round(
+            conf_matrix.astype("float") / conf_matrix.sum(axis=1)[:, np.newaxis], 3
+        )
+    # Adjust label color to make them readable when displayed on top of any colormap
+    df = melt_distances_to_heatmap(pd.DataFrame(conf_matrix))
+    mean = df[value_label].mean()
+    df[label_color] = -df[value_label].apply(lambda x: int(x > mean))
+    if target_names is not None:
+        df[target_label] = df[target_label].apply(lambda x: target_names[x])
+        df[pred_label] = df[pred_label].apply(lambda x: target_names[x])
+    true_label_name = "Actual label"
+    pred_label_name = "Predicted label"
+
+    tooltip = [
+        (true_label_name, "@{%s}" % target_label),
+        (pred_label_name, "@{%s}" % pred_label),
+        ("Examples", "@{%s}" % value_label),
+    ]
+    hover = HoverTool(tooltips=tooltip)
+    heatmap = hv.HeatMap(df, kdims=[pred_label, target_label])
+    heatmap.opts(
+        title=title, colorbar=True, cmap=cmap, width=width, height=height, tools=[hover]
+    )
+    labeled = heatmap * hv.Labels(heatmap).opts(text_color=label_color, cmap=cmap)
+    return labeled.options(
+        xlabel=pred_label_name, ylabel=true_label_name, invert_yaxis=True
+    )
+
+
+def plot_model_evaluation(y, y_score):
+    cr = plot_classification_report(y, y_score)
+    conf_mat = plot_confussion_matrix(y, y_score, target_names=["No leak", "Leak"])
+    roc_c = plot_roc_curve(y, y_score)
+    return (cr + conf_mat + roc_c).cols(2)
