@@ -51,7 +51,11 @@ export_notebook:
 export_notebook_input: 
 	jupyter nbconvert --output-dir="./reports/" --to html "./notebooks/$(n)*.ipynb"
 
-
+## Convert notebook to html and uploads it to s3 bucket
+upload_s3: 
+	jupyter nbconvert --output-dir="./reports/" --to html "notebooks/11-jsg-complete-solution.ipynb"
+	aws s3 cp reports/11-jsg-complete-solution.html s3://leakage-detector/
+	#aws s3 presign s3://leakage-detector/11-jsg-complete-solution.html --expires-in 604800
 
 #################################################################################
 # Self Documenting Commands                                                     #
